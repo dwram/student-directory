@@ -1,21 +1,17 @@
 @students = []
 
 def try_load_students
-  unless ARGV.empty?
+  if ARGV.empty?
+    file_name = 'students.csv'
+    puts "No argument provided: Loading default file... #{file_name}"
+  elsif !ARGV.empty?
     file_name = ARGV.first
     puts "File argument provided: Attempting to load... #{file_name}"
   end
-  if ARGV.empty?
-    file_name = 'students.csv'
-    puts "No argument provided: Loading default file #{file_name}"
-  end
-
-  return if file_name.nil?
 
   if File.exist?(file_name)
     load_students(file_name)
     puts "Successfully imported #{@students.count} students from #{file_name}."
-    return
   else
     puts "File: #{file_name} does not exist."
     exit
@@ -36,9 +32,12 @@ end
 def print_specific_letter
   puts 'Print student names starting with...'
   start_with = STDIN.gets.chomp
+  container = []
   @students.each do |profiles|
-    puts profiles[:name].capitalize if profiles[:name][0].downcase == start_with
+    container << profiles[:name].capitalize if profiles[:name][0].downcase == start_with
   end
+  puts container
+  puts "There are #{container.size} students with names starting with #{start_with}"
 end
 
 def print_shorter_than
@@ -77,7 +76,6 @@ end
 def show_students
   print_header
   print_students_list
-  print_specific_letter
   print_shorter_than
   print_while
   print_footer
@@ -92,7 +90,10 @@ def process(selection)
   when '3'
     save_students
   when '4'
-    load_students
+    puts "Enter the name of the file you wish to load"
+    load_students(STDIN.gets.chomp)
+  when '5'
+    print_specific_letter
   when '9'
     exit # this will cause the program to terminate
   else
@@ -105,37 +106,44 @@ def print_menu
   puts '2. Show the students'
   puts '3. Save list of students'
   puts '4. Load list of students'
+  puts '5. Filter students by first character'
   puts '9. Exit'
 end
 
 def save_students
   puts 'SAVE: Please enter filename/leave empty to save to default students.csv'
   filename = STDIN.gets.chomp
-  if File.exist?(filename) || filename.empty?
-    puts "File: #{filename} found! Appending..."
-    file = File.open('students.csv', 'a')
-  else
+  if filename.empty?
+    puts "No file selected, using default: #{filename}... Appending..."
+    filename = 'students.csv'
+  elsif File.exist?(filename)
+    puts "File found: #{filename}... Appending..."
+    filename = filename
+  elsif !File.exist?(filename)
     puts "Creating new file #{filename}"
-    file = File.open(filename, 'w')
+    filename = filename
   end
-  @students.each do |profile|
-    student_data = [profile[:name], profile[:cohort]]
-    csv_line = student_data.join(',')
-    file.puts csv_line
+  file = File.open(filename, 'a') do |file_opened|
+    @students.each do |profile|
+      csv_line = [profile[:name], profile[:cohort]].join(',')
+      file_opened.puts csv_line
+    end
   end
-  file.close
-  puts "Saved #{@students.count} profiles into #{filename}"
+  puts "Saved #{@students.count} profiles into #{filename} |"
 end
 
-def load_students(filename)
-#puts 'LOAD: Please enter filename'
-  file = File.open(filename, 'r')
-  file.readlines.each do |line|
-    name, cohort = line.chomp.split(',')
-    @students << { name: name, cohort: cohort.to_sym }
+def load_students(filename = '')
+  if File.exist?(filename)
+    file = File.open(filename, 'r') do |file_opened|
+      file_opened.each_line do |line|
+        name, cohort = line.chomp.split(',')
+        @students << { name: name, cohort: cohort.to_sym }
+        end
+    end
+    puts "Loaded #{@students.count} profiles from #{filename} | File closed: #{file.closed?}"
+  else
+    puts "File: #{filename} does not exist"
   end
-  file.close
-  puts "Loaded #{@students.count} profiles from #{filename}"
 end
 
 def interactive_menu
