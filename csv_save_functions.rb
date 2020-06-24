@@ -19,8 +19,9 @@ def select_csv
   file_name = STDIN.gets.chomp
   file_name += '.csv'
   if file_name.empty? || file_name == '.csv'
+    file_name = 'students.csv'
     puts "No file selected, using default: #{file_name}... Appending..."
-    return 'students.csv'
+    return file_name
   elsif File.exist?(file_name)
     STDOUT.puts "File found: #{file_name}... Appending..."
     return file_name
