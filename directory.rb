@@ -46,9 +46,9 @@ def process(selection)
   when '7'
     reset
   when '9'
-    exit # this will cause the program to terminate
+    exit
   else
-    STDOUT.puts 'Enter was invalid, try again'
+    STDOUT.puts 'Entry is invalid, try again'
   end
 end
 
